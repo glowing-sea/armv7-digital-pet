@@ -1,7 +1,7 @@
 ---
 title: "Design Proposal"
-author: 
-email: 
+author: Haoting Chen
+email: u7227871@anu.edu.au
 ---
 
-<!-- write your design proposal here -->
+I will create a program allowing users to raise a digital cat. When the program starts, an animated cat is shown on the screen. This will be achieved by changing images and each image is displayed by setting LEDs line by line. By using RNG, the cat can do random things such as sit, walk, and sleep. With a higher friendship level, more animations will be unlocked. The status of the cat is stored in the memory as a record, which includes friendship level, hunger value, happiness, and age. The age and hunger value mainly depend on the SysTick timer, and the happiness depends on your interaction with the pet. When the back button is pressed, a menu comes up on the screen with different functions including playing, feeding, resetting and saving (in non-volatile memory). Users can then use the left and right buttons to choose between different functions (jump to different sections of the code) and the back button is used as Confirm. As time pass, the cat may also randomly ask (sound the speaker) the owner to play with or feed them.
