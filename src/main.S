@@ -1,6 +1,6 @@
 .syntax unified
 .global main
-.global every_second_checkpoint, end_of_GPIOTE
+.global SysTick_Handler, end_of_GPIOTE
 
 
 .type main, %function
@@ -8,16 +8,10 @@ main:
 
   bl my_startup
 
-
-  @ mov r0, 1
-  @ bl set_state
-  @ bl playing_pending
-
-  @ bl playing
-
+  @ uncomment this to test the program
+  @ bl tests
 
   openning:
-
 
   ldr r0, =0b00000000000000000000000001001010
   bl display
@@ -36,12 +30,9 @@ main:
   ldr r0, =0b00000000101111110010100101000010
   bl display
 
-
-  @ bl tests
-
   main_loop:
 
-    @ Check the dog state at the beginning
+    @ Check the dog's state constantly
     bl get_state
     mov r4, r0
     case_expression:
@@ -55,13 +46,13 @@ main:
       .byte (case5 - branchtable) /2
       .align
     case0:
-      bl idel
+      bl idle
       b exit_case
     case1:
-      bl playing_pending
+      bl playing_pending_state
       b exit_case
     case2:
-      bl playing
+      bl playing_state
       b exit_case
     case3:
       @nop
@@ -92,32 +83,46 @@ reset:
   b openning
 
 
+@ ======================================== TIME HANDELERS ============================================== @
 
 
+@ A handler that is called every millisecond
+.type SysTick_Handler, %function
+SysTick_Handler:
+  push {lr}
+  ldr r1, =milliseconds_count
+  ldr r0, [r1]
+  add r0, 1
+  str r0, [r1]
+  cmp r0, 1000
+  IT EQ
+  bleq every_second_checkpoint
+  pop {lr}
+  bx lr
+.size SysTick_Handler, .-SysTick_Handler
+
+
+@ A handler that is called every second
 .type every_second_checkpoint, %function 
 every_second_checkpoint:
   push {lr}
+
   ldr r1, =milliseconds_count
   mov r0, 0
   str r0, [r1] @ reset milliseconds counter
-
-  @ ldr r0, =0b00000000101111110010100101010010
-  @ bl display
-
   ldr r1, =seconds_count @ add 1 second
   ldr r0, [r1]
   add r0, 1
   str r0, [r1]
-
   ldr r1, =seconds_count_reset @ add 1 second
   ldr r0, [r1]
   add r0, 1
   str r0, [r1]
-
   cmp r0, 10
   IT EQ
   bleq ten_seconds_checkpoint
 
+  @ Chek if the game has finished or failed every second.
   @ Either friendship or hunger become 0 will lead to a failed state.
 
   bl get_hunger
@@ -128,17 +133,12 @@ every_second_checkpoint:
   cmp r0, 0
   beq to_failed_state @ will back to second_check_end
 
-
-
-
-
-  @ When friendship is 5 succeed state. can only go to succeed once
+  @ When friendship reaches 5, the game finished. Can only finished once
   bl get_friendship
   cmp r0, 5
   beq to_finished_state @ will back to second_check_end
 
   second_check_end:
-
   pop {lr}
   bx lr
 .size every_second_checkpoint, . - every_second_checkpoint
@@ -185,10 +185,10 @@ to_failed_state:
   bl set_hunger
   mov r0, 5
   bl set_state
-  beq second_check_end
+  b second_check_end
 
 
-
+@ A handler that is called every 10 seconds
 .type ten_seconds_checkpoint, %function 
 ten_seconds_checkpoint:
   push {lr}
@@ -196,20 +196,16 @@ ten_seconds_checkpoint:
   mov r0, 0
   str r0, [r1] @ reset seconds counter
 
-  @ ldr r0, =0b10111101011010110101101111010010
-  @ bl display
-
-  @ Every 10 seconds, if the dog is in idel state, there is 50% change to event
+  @ Every 10 seconds, if the dog is in idle state, there is 50% change to event
   @ the dog will be in playing pending state for 10s, if 10s pass, friendship level decrease by 1.
   @ if either A or B button is pressedm, the dog will move to playing state.
   bl get_state
   cmp r0, 0
-  beq set_state_to_playing_pending
+  beq set_state_to_playing_pending @ this branch will back to end_of_ten_second_checkpoint
 
 
   end_of_ten_second_checkpoint:
 
-  
   ldr r1, =ten_seconds_count
   ldr r0, [r1]
   add r0, 1
@@ -219,15 +215,8 @@ ten_seconds_checkpoint:
   mov r1, 2
   bl modulus
   cmp r0, 1
-  bne not_decrease_hunger
-
-  @ ldr r1, dog_record
-  @ ldr r0, [r1, 4]
-  @ sub r0, 1
-  @ cmp
-
+  beq not_decrease_hunger
     bl dec_hunger
-
   not_decrease_hunger:
 
   pop {lr}
@@ -243,12 +232,8 @@ set_state_to_playing_pending:
   bleq set_state
   b end_of_ten_second_checkpoint
 
-@ set to playing state.
-set_state_to_playing:
-  mov r0, 2
-  bl set_state
-  b end_of_GPIOTE
 
+@ ======================================== BUTTONS HANDELERS ============================================== @
 
 .global GPIOTE_IRQHandler
 .type GPIOTE_IRQHandler, %function
@@ -259,7 +244,7 @@ GPIOTE_IRQHandler:
   @ clear event
   
 
-  @ whenever ring 2 is touched, show the current status of the dog.
+  @ whenever ring 2 is touched, show the current status of the dog. do not change state
   ldr r0, =GPIOTE_EVENTS_IN2
   ldr r1, [r0]
   cmp r1, 1
@@ -271,16 +256,15 @@ GPIOTE_IRQHandler:
   beq set_state_to_playing @ after show_status it will jump to end_of_GPIOTE
 
 
-  @ check if in idel state
+  @ check if in idle state
   bl get_state
   cmp r0, 0
-  beq idel_button_press_reaction @ after show_status it will jump to end_of_GPIOTE
+  beq idle_button_press_reaction @ after show_status it will jump to end_of_GPIOTE
 
   @ check if in playing with button enable
   bl get_state
   cmp r0, 3
   beq playing_button_press_reaction @ after show_status it will jump to end_of_GPIOTE
-
 
 
   end_of_GPIOTE:
@@ -301,3 +285,168 @@ GPIOTE_IRQHandler:
   pop {lr}
   bx lr
 .size GPIOTE_IRQHandler, .-GPIOTE_IRQHandler
+
+
+
+
+@ A sub buttons Handler when the dog is in playing pending state (1)
+@ set to playing state.
+set_state_to_playing:
+  mov r0, 2
+  bl set_state
+  b end_of_GPIOTE
+
+
+@ A sub buttons Handler when the dog is in idle state (0)
+idle_button_press_reaction:
+
+  @ check if button a or b
+  ldr r0, =GPIOTE_EVENTS_IN0
+  ldr r1, [r0]
+  cmp r1, 1
+  beq move_eyes_to_left
+  
+  ldr r0, =GPIOTE_EVENTS_IN1
+  ldr r1, [r0]
+  cmp r1, 1
+  beq move_eyes_to_right
+
+
+  ldr r0, =GPIOTE_EVENTS_IN3
+  ldr r1, [r0]
+  cmp r1, 1
+  beq go_to_eating_state
+
+
+  move_eyes_to_left:
+    bl get_friendship
+    cmp r0, 2
+    blt angry_version_left
+
+      ldr r0, =0b00000101000000010001011101011001
+      bl display
+      ldr r0, =0b00000101000000010001011101000001
+      bl display
+      ldr r0, =0b00000101000000010001011101011001
+      bl display
+      b end_of_GPIOTE
+
+    angry_version_left:
+      ldr r0, =0b00000101000000001110100011011001
+      bl display
+      ldr r0, =0b00000101000000001110100011000001
+      bl display
+      ldr r0, =0b00000101000000001110100011011001
+      bl display
+      b end_of_GPIOTE
+
+  move_eyes_to_right:
+    bl get_friendship
+    cmp r0, 2
+    blt angry_version_right
+      ldr r0, =0b00000001010000010001011101011001
+      bl display
+      ldr r0, =0b00000001010000010001011101000001
+      bl display
+      ldr r0, =0b00000001010000010001011101011001
+      bl display
+      b end_of_GPIOTE
+
+    angry_version_right:
+      ldr r0, =0b00000001010000001110100011011001
+      bl display
+      ldr r0, =0b00000001010000001110100011000001
+      bl display
+      ldr r0, =0b00000001010000001110100011011001
+      bl display
+      b end_of_GPIOTE
+
+
+  go_to_eating_state:
+    mov r0, 4
+    bl set_state
+    b end_of_GPIOTE
+
+@ A sub buttons handler when the dog in playing state with button enable (3)
+playing_button_press_reaction:
+  ldr r0, =0b00000010100000010001011101100011
+  bl display
+
+  mov r0, 0x400000
+  bl delay
+
+  bl inc_turns
+  bl inc_success_times
+  bl get_success_times
+  lsl r1, r0, 2 @ index to offset
+  ldr r0, =numbers
+  ldr r0, [r0, r1]
+  bl display
+
+  mov r0, 0x400000
+  bl delay
+
+  b end_of_GPIOTE
+
+
+@ A sub buttons handler when ring 2 is pressed no matter what state the dog is in
+@ Show the current status of the dog (friendship and hunger level)
+show_status:
+  push {r5-r8, lr}
+
+  ldr r8, =dog_record
+  ldr r5, =numbers
+
+  ldr r6, [r8] @ friendship index
+  ldr r7, [r8, 4] @ hunger index
+
+  @ ldr r5, =numbers
+  @ bl get_friendship
+  @ mov r6, r0
+  @ bl get_hunger
+  @ mov r7, r0
+
+
+  @ check if friendship and hunger is between 1 - 5
+  cmp r6, 5
+  bgt number_error
+  cmp r6, 0
+  blt number_error
+  cmp r7, 5
+  bgt number_error
+  cmp r7, 0
+  blt number_error
+
+  lsl r6, r6, 2 @ index to offset
+  lsl r7, r7, 2 @ index to offset
+
+  ldr r6, [r5, r6] @ load number pixels
+  ldr r7, [r5, r7] @ load number pixels
+
+  b skip_number_error
+  number_error:
+    ldr r6, [r5, 24]
+    ldr r7, [r5, 24]
+  skip_number_error:
+
+  ldr r0, =0b01110010000111001000010001001011
+  bl display
+  mov r0, 0x400000
+  bl delay
+
+  mov r0, r6
+  bl display
+
+  mov r0, 0x400000
+  bl delay
+  ldr r0, =0b01010010100111001010010101001011
+  bl display
+
+  mov r0, 0x400000
+  bl delay
+
+  mov r0, r7
+  bl display
+
+  pop {r5-r8, lr}
+  b end_of_GPIOTE

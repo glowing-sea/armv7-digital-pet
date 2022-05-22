@@ -1,5 +1,5 @@
 .syntax unified
-.global milliseconds_count, seconds_count, seconds_count_reset, ten_seconds_count, dog_record
+.global milliseconds_count, seconds_count, seconds_count_reset, ten_seconds_count, dog_record, numbers
 .global get_friendship, inc_friendship, dec_friendship, set_friendship
 .global get_hunger, inc_hunger, dec_hunger, set_hunger
 .global get_state, set_state
@@ -39,6 +39,16 @@ game:
 @ 3 playing button enable
 @ 4 eating
 @ 5 failed state
+
+.data
+numbers:
+  .word 0b01110010100101001010011101100011 @ 0
+  .word 0b00100001000010000100001001100011 @ 1
+  .word 0b01110000100111001000011101100011 @ 2
+  .word 0b01110000100111000010011101100011 @ 3
+  .word 0b01010010100111000010000101100011 @ 4
+  .word 0b01110010000111000010011101100011 @ 5
+  .word 0b10001010100010001010100011100011 @ number out of bound
 
 
 @ ================================= GETTER AND SETTER FUNCTIONS =============================== 

@@ -298,8 +298,3 @@ one_tenth:
   bl modulus
   pop {lr}
   bx lr
-
-
-
-
-

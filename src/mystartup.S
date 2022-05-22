@@ -14,7 +14,6 @@
 .global NVIC_ICPR0
 
 .global my_startup
-.global SysTick_Handler
 
 @ GPIOTE Constants
 .set GPIOTE_INTENSET, 0x40006304
@@ -101,41 +100,6 @@ my_startup:
   ldr r1, =1 << 22 @ 21-23
   str r1, [r0]
 
-
-  @ openning
-  @ ldr r0, =0b00000000000000000000000001001010
-  @ bl display
-  @ ldr r0, =0b10010000000000000000000001000010
-  @ bl display
-  @ ldr r0, =0b10010100100000000000000001010010
-  @ bl display
-  @ ldr r0, =0b11111100101001000000000001000010
-  @ bl display
-  @ ldr r0, =0b00010111111001010010000001011010
-  @ bl display
-  @ ldr r0, =0b00000000101111110010100101000010
-  @ bl display
-  @ ldr r0, =0b00000000101111110010100101100010
-  @ bl display
-  @ ldr r0, =0b00000000101111110010100101000010
-  @ bl display
-
   pop {lr}
   bx lr
 .size my_startup, . - my_startup
-
-
-@ Milliseconds Counter
-.type SysTick_Handler, %function
-SysTick_Handler:
-  push {lr}
-  ldr r1, =milliseconds_count
-  ldr r0, [r1]
-  add r0, 1
-  str r0, [r1]
-  cmp r0, 1000
-  IT EQ
-  bleq every_second_checkpoint
-  pop {lr}
-  bx lr
-.size SysTick_Handler, .-SysTick_Handler
