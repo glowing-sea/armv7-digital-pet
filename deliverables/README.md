@@ -15,8 +15,11 @@
 - Each student in the course was required to develop an original digital pet firmware program for micro:bit using a combination of technical features. Work was assessed by code quality, report quality, and engagingness.
 
 **Course Final Mark**: 82 / 100
+
 **Project Weight**: [20%](https://programsandcourses.anu.edu.au/2022/course/COMP2300/First%20Semester/4415) of COMP2300
+
 **Project Mark**: 85 / 100
+
 **Deliverables**: [design document](https://github.com/glowing-sea/armv7-digital-pet/blob/main/README.md), [code](https://github.com/glowing-sea/armv7-digital-pet), [video demos](https://github.com/glowing-sea/armv7-digital-pet/tree/main/video-demos)
 
 *(Selected source code is provided; university-copyrighted components are excluded.)*
