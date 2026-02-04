@@ -12,7 +12,7 @@
 
 **Course Outline**: 
 
-- Each student in the course was required to develop an original digital pet firmware program for micro:bit using a combination of technical features. Work was assessed by code quality, report quality, and engagingness.
+- Each student in the course was required to develop an *original* digital pet firmware program for micro:bit using a combination of technical features. Work was assessed by code quality, report quality, and engagingness.
 
 **Course Final Mark**: 82 / 100
 
