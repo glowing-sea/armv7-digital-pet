@@ -1,3 +1,6 @@
+> [!IMPORTANT] 
+> If any links or files require a password, please use my **UTAS Application Number**. 
+
 ## Abstract
 
 **Title**: An Interactive Digital Pet Firmware for micro:bit based on ARMv7 Assembly Language
@@ -18,7 +21,8 @@
 
 **Project Weight**: [20%](https://programsandcourses.anu.edu.au/2022/course/COMP2300/First%20Semester/4415) of COMP2300
 
-**Project Mark**: 85 / 100
+**Project Mark**: [85](
+https://1drv.ms/f/c/4f49bb445ba8ff14/IgC-wOsVFEZoSpTf3QKQgPQlATR43PxNM1Op5wL73sWP8w8?e=gFK3oo) / 100
 
 **Deliverables**: [design document](https://github.com/glowing-sea/armv7-digital-pet/blob/main/README.md), [code](https://github.com/glowing-sea/armv7-digital-pet), [video demos](https://github.com/glowing-sea/armv7-digital-pet/tree/main/video-demos)
 
